@@ -45,14 +45,14 @@ def main(url, chainfile):
     ss_list = read_chain_file(chainfile)
     selected_ss = random.choice(ss_list)
     ss_list.remove(selected_ss)
-    ss_list.append(url)  # Append URL to the end of the list
-    serialized_data = pickle.dumps(ss_list)  # Serialize data
+    ss_list.append(url)
+    serialized_data = pickle.dumps(ss_list)  
 
     host, port = selected_ss.split()
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.connect((host, int(port)))
-        s.sendall(serialized_data)  # Send serialized data
+        s.sendall(serialized_data) 
 
         filename = url.split('/')[-1] if '/' in url else 'index.html'
         save_file(filename, s)
