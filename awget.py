@@ -50,12 +50,22 @@ def main(url, chainfile):
 
     host, port = selected_ss.split()
 
+    print(f"Request: {url}...")
+    print("chainlist is")
+    for ss_entry in ss_list[:-1]:
+        print(ss_entry)
+    print(f"next SS is {selected_ss}")
+    print("waiting for file...")
+
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.connect((host, int(port)))
         s.sendall(serialized_data) 
 
         filename = url.split('/')[-1] if '/' in url else 'index.html'
         save_file(filename, s)
+        print(f"Received file {filename}")
+        print("Goodbye!")
+
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
