@@ -27,7 +27,7 @@ sys.stdout = open(sys.stdout.fileno(), 'w', buffering=1)
 def handle_client(connection, address, chain_list, url):
     if not chain_list:
         filename = f"{str(uuid.uuid4())}_{url.split('/')[-1]}"
-        subprocess.run(['wget', '-O', filename, '-N', url])
+        subprocess.run(['wget', '-N', url])
         with open(filename, 'rb') as file:
             while True:
                 bytes_read = file.read(1024)
