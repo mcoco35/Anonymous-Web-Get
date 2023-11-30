@@ -25,6 +25,7 @@ sys.stdout = open(sys.stdout.fileno(), 'w', buffering=1)
 ###############################################
 
 def handle_client(connection, address, chain_list, url):
+    print(chain_list)
     if not chain_list:
         filename = f"{str(uuid.uuid4())}_{url.split('/')[-1]}"
         subprocess.run(['wget', '-O', filename, '-N', url])
