@@ -69,8 +69,8 @@ def main(url, chainfile):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.connect((host, int(port)))
 
-        updated_chain_list = [f"{host} {port}"] + ss_list
-        serialized_data = pickle.dumps([url] + updated_chain_list)
+        #updated_chain_list = [f"{host} {port}"] + ss_list
+        serialized_data = pickle.dumps([url] + ss_list)
         s.sendall(serialized_data)
 
         filename = save_file(url, s, ss_cp_list)
