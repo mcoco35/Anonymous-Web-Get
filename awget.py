@@ -74,7 +74,7 @@ def main(url, chainfile):
         s.sendall(serialized_data)
 
         filename = save_file(url, s, ss_cp_list)
-        print(f"Next SS is {ss_list[0]}")
+        print(f"Next SS is {selected_ss}")
         print("waiting for file...")
     print(f"Received file {filename}")
 
