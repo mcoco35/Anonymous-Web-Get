@@ -14,12 +14,16 @@ def main():
     ip = socket.gethostbyname(host_name)
     server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     port = CHAIN_SERVERS[host_name]
+    if DEBUG:
+        print(f'[DEBUG] Test server up on IP: {ip} PORT: {port}')
     server_socket.bind((ip, port))
     server_socket.listen(1)
     client_socket, client_address = server_socket.accept()
     directory = get_directory(client_socket)
     while True: 
         signal = receive(client_socket)
+        if DEBUG:
+                print(f"[DEBUG] Test Server Got Signal: {signal}")
         if signal == CAN_SET_UP_STEPPING_STONES_TEST:
             run_can_set_up_stepping_stone_test(directory,client_socket)
         elif signal == ALL_STONES_HIT_DURING_AWGET:
@@ -29,15 +33,19 @@ def main():
             exit()
 
 def all_chains_hit_correctly(directory, client_socket):
+    if DEBUG:
+        print(f"[DEBUG]: Running {ALL_STONES_HIT_DURING_AWGET}")
     host_name = socket.gethostname()
     port_of_stone = get_port_of_stone(host_name,directory)
     ip = socket.gethostbyname(host_name)
+    if DEBUG:
+        print(f'Running: python3 {directory}/{SS} -p {port_of_stone}')
     process = subprocess.Popen(f'python3 {directory}/{SS} -p {port_of_stone}', stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,shell=True)
     stdout_fd = process.stdout.fileno()
     stderr_fd = process.stderr.fileno()
     make_non_blocking(stdout_fd)
     make_non_blocking(stderr_fd)
-    was_hit, all_lines = get_strings_after_timeout(process,['starting connection to', 'Waiting for file...','Relaying file ...','Goodbye!'],6)
+    was_hit, all_lines = get_strings_after_timeout(process,['next SS is', 'waiting for file...','Relaying file','Goodbye!'],15)
     was_list_chain = any('chainlist is empty' in line for line in all_lines)
     if was_list_chain:
         client_socket.send(SUCCESS_LAST_CHAIN.encode())
@@ -48,15 +56,19 @@ def all_chains_hit_correctly(directory, client_socket):
     process.kill()
 
 def run_can_set_up_stepping_stone_test(directory, client_socket):
+    if DEBUG:
+        print(f"[DEBUG]: Running {CAN_SET_UP_STEPPING_STONES_TEST}")
     host_name = socket.gethostname()
     port_of_stone = get_port_of_stone(host_name,directory)
     ip = socket.gethostbyname(host_name)
+    if DEBUG:
+        print(f'Running: python3 {directory}/{SS} -p {port_of_stone}')
     process = subprocess.Popen(f'python3 {directory}/{SS} -p {port_of_stone}', stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,shell=True)
     stdout_fd = process.stdout.fileno()
     stderr_fd = process.stderr.fileno()
     make_non_blocking(stdout_fd)
     make_non_blocking(stderr_fd)
-    start_up_correctly,_ = get_strings_after_timeout(process,['listening on',str(ip),str(port_of_stone)],1)
+    start_up_correctly,_ = get_strings_after_timeout(process,[str(ip),str(port_of_stone)],1)
     if start_up_correctly:
         client_socket.send(SUCCESS.encode())
     else:

@@ -26,17 +26,23 @@ def grade_files(directory_path):
 def set_up_test_servers():
     chains = get_chains()
     servers = []
-    for ip, host_name, _ in chains:
-        test_server=os.path.abspath("test_server.py")
-        test_server_process = None
-        if not DEBUG:
-            test_server_process = subprocess.Popen(f'ssh {host_name} \"python3 {test_server}\"',stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, text=True)
-            time.sleep(3)
-        test_server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        port = CHAIN_SERVERS[host_name]
-        test_server_socket.connect((ip, port))
-        servers.append((test_server_socket,test_server_process,ip))
-    time.sleep(3)
+    try:
+        for ip, host_name, _ in chains:
+            test_server=os.path.abspath("test_server.py")
+            test_server_process = None
+            if not DEBUG:
+                test_server_process = subprocess.Popen(f'ssh {host_name} \"python3 {test_server}\"',stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, text=True)
+                time.sleep(3)
+            test_server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            port = CHAIN_SERVERS[host_name]
+            test_server_socket.connect((ip, port))
+            servers.append((test_server_socket,test_server_process,ip))
+        time.sleep(3)
+    except Exception as e:
+        if DEBUG:
+            print(f'[DEBUG] IS ON, but test servers are not up and running')
+            print(e)
+            exit()    
     return servers
     
 def run_tests(directory):
@@ -44,22 +50,25 @@ def run_tests(directory):
     if not DEBUG:
         # Want to keep current File to debug with 
         generate_chain_file()
-
+    if DEBUG:
+        print(f"\n\n\ncheck_files_for_string: sys.stdout = open(sys.stdout.fileno(), 'w', buffering=1)\n\n\n")
     printing_not_buffered = check_files_for_string([SS,AWGET], "sys.stdout = open(sys.stdout.fileno(), 'w', buffering=1)")
     if printing_not_buffered:
         report += f"[Buffered Prinitng] Buffer for prints set to 1: PASSED \n\n"
     else:
         report += f"[Buffered Prinitng] Buffer for prints set to 1: FAIL\n\n"
 
-
-    able_to_reuse_port = check_files_for_string([SS,AWGET], "socket.SO_REUSEADDR")
+    if DEBUG:
+        print(f"\n\n\ncheck_files_for_string: SO_REUSEADDR \n\n\n")
+    able_to_reuse_port = check_files_for_string([SS], "socket.SO_REUSEADDR")
     if able_to_reuse_port:
         report += f"[Can reuse Port] SO_REUSEADDR is seen (does not check if used correctly): PASSED \n\n"
     else:
         report += f"[Can reuse Port] need to be able to reuse port in case of restart: FAIL\n\n"
 
     passed_awget_error_chaingang_arg = awget_error_chaingang(directory)
-
+    if DEBUG:
+        print(f"\n\n\nawget_error_chaingang\n\n\n")
     if passed_awget_error_chaingang_arg:
         report += f"[Chaingang] Stepping stones are all listed out, meaning read in correctly: PASSED \n\n"
     else:
@@ -70,13 +79,16 @@ def run_tests(directory):
     try:
         send_to_all_test_servers(test_servers,directory)
         time.sleep(2)
+        if DEBUG:
+            print(f"\n\n\ncan_set_up_stepping_stones\n\n\n")
         passed_can_set_up_stepping_stones = can_set_up_stepping_stones(test_servers)
         if passed_can_set_up_stepping_stones:
             report += f"[Set up Chains] All chains set up listening correctly: PASSED\n\n"
         else:
             report += f"[Set up Chains] Not all chains set up listening correctly: FAIL\n\n"
-
         passed_can_set_up_stepping_stones = all_stones_hit_during_awget(directory,test_servers)
+        if DEBUG:
+            print(f"\n\n\nall_stones_hit_during_awget\n\n\n")
         if passed_can_set_up_stepping_stones:
             report += f"[Chains Hit] All chains hit correctly: PASSED\n\n"
         else:

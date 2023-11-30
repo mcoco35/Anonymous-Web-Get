@@ -4,7 +4,7 @@ import fcntl
 import random 
 import time
 
-DEBUG                               = False
+DEBUG                               = True
 AWGET                               = 'awget.py'
 SS                                  = 'ss.py'
 RESTART                             = "<RESTART>"
@@ -33,13 +33,11 @@ SAFE_FILES = [
     'utils',
     'test_server',
     'auto_grader',
-    'output.txt',
+    'student_autograder.README',
     SS,
     AWGET,
     DEFAULT_CHAIN_FILE
 ]
-
-# Create a logger
 
 def make_non_blocking(fd):
         flags =fcntl.fcntl(fd, fcntl.F_GETFL)
@@ -73,17 +71,17 @@ def generate_chain_file(num_chains = RANDOM_NUMBER_OF_CHAINS, chain_file = DEFAU
 
 def seen_stones(output):
     ss = []
-    file = open(DEFAULT_CHAIN_FILE, "r")
+    file = open(f'{DEFAULT_CHAIN_FILE}', "r")
     numStepingStones = int(file.readline())
     for line in file:
         ip, port = line.split(" ")
         ss.append((ip,port.strip()))
 
     stones_seen = [False]*len(ss)
-    for output in output:
+    for out in output:
         for  i, stone in enumerate(ss):
             ip, port = stone
-            if  port in output and ip in output:
+            if  port in out and ip in out:
                 stones_seen[i]= True
     return all(stones_seen)
 
@@ -136,7 +134,7 @@ def send_to_all_test_servers(server_list, item):
         server[0].send(item.encode())
 
 def found_all_strings(all_lines,string_list):
-    return all(any(curr_string in line for line in all_lines) for curr_string in string_list)
+    return all(any(curr_string.lower() in line.lower() for line in all_lines) for curr_string in string_list)
 
 def get_strings_after_timeout(process, string_list, timeout,any_of_strings=False):
     in_timeout = True
@@ -147,10 +145,15 @@ def get_strings_after_timeout(process, string_list, timeout,any_of_strings=False
         elapsed_time = current_time - start_time
         in_timeout = elapsed_time < timeout
         line = process.stdout.readline()
+        error = process.stderr.readline()
         if len(all_lines) == 0 and line:
             all_lines = line
         elif line:
             all_lines.append(line)
+        if DEBUG and len(line) != 0:
+            print(f"[DEBUG] Line: {line}")
+        if DEBUG and len(error) != 0:
+            print(f"[DEBUG] Error:{error}")
         if any_of_strings and any(wanted_string in newline for newline in all_lines for wanted_string in string_list):
             return True, all_lines
         if found_all_strings(all_lines,string_list):
@@ -181,5 +184,6 @@ def read_from_test_servers(test_servers):
             # Handle socket errors here if necessary
             pass
 
-
+    if DEBUG:
+        print(f"[DEBUG]: Output from test_servers: {output}")
     return output
