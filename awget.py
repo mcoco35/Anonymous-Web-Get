@@ -26,10 +26,12 @@ def read_chain_file(chainfile):
     return ss_list
 
 def save_file(url, conn):
-    # Extract the filename from the URL
     filename = url.split('/')[-1] if '/' in url else 'index.html'
 
-    print(f"Saving file: {filename}")
+    print(f"Request: {url}...")
+    print("chainlist is")
+    
+    print("waiting for file...")
 
     with open(filename, 'wb') as file:
         while True:
@@ -37,6 +39,7 @@ def save_file(url, conn):
             if not data:
                 break
             file.write(data)
+    print(f"Received file {filename}")
 
 def main(url, chainfile):
     if not chainfile:
@@ -74,3 +77,5 @@ if __name__ == "__main__":
     url = sys.argv[1]
     chainfile = sys.argv[3] if len(sys.argv) > 3 and sys.argv[2] == '-c' else None
     main(url, chainfile)
+    print("Goodbye!")
+    
