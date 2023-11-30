@@ -34,8 +34,8 @@ def save_file(url, conn, ss_list):
     for entry in ss_list:
         print(entry)
     
-    print(f"Next SS is {ss_list[0]}")
-    print("waiting for file...")
+    #print(f"Next SS is {ss_list[0]}")
+    #print("waiting for file...")
 
     with open(filename, 'wb') as file:
         while True:
@@ -43,7 +43,8 @@ def save_file(url, conn, ss_list):
             if not data:
                 break
             file.write(data)
-    print(f"Received file {filename}")
+    
+    return filename
 
 def main(url, chainfile):
     if not chainfile:
@@ -72,7 +73,10 @@ def main(url, chainfile):
         serialized_data = pickle.dumps([url] + updated_chain_list)
         s.sendall(serialized_data)
 
-        save_file(url, s, ss_cp_list)
+        filename = save_file(url, s, ss_cp_list)
+        print(f"Next SS is {ss_list[0]}")
+        print("waiting for file...")
+    print(f"Received file {filename}")
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
