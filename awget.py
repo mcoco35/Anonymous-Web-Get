@@ -25,12 +25,16 @@ def read_chain_file(chainfile):
     ss_list = [line.strip() for line in lines[1:num_ss + 1]]
     return ss_list
 
-def save_file(url, conn):
+def save_file(url, conn, ss_list):
     filename = url.split('/')[-1] if '/' in url else 'index.html'
 
     print(f"Request: {url}...")
     print("chainlist is")
     
+    for entry in ss_list:
+        print(entry)
+    
+    print(f"Next SS is {ss_list[0]}")
     print("waiting for file...")
 
     with open(filename, 'wb') as file:
@@ -55,6 +59,7 @@ def main(url, chainfile):
         print("Error: Empty chainfile.")
         sys.exit(1)
 
+    ss_cp_list = ss_list.copy()
     selected_ss = random.choice(ss_list)
     ss_list.remove(selected_ss)
 
@@ -67,7 +72,7 @@ def main(url, chainfile):
         serialized_data = pickle.dumps([url] + updated_chain_list)
         s.sendall(serialized_data)
 
-        save_file(url, s)
+        save_file(url, s, ss_cp_list)
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
